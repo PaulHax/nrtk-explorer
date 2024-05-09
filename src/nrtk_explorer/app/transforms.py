@@ -13,7 +13,7 @@ from trame.app import get_server
 import nrtk_explorer.library.transforms as trans
 import nrtk_explorer.library.nrtk_transforms as nrtk_trans
 from nrtk_explorer.library import images_manager, object_detector
-from nrtk_explorer.app.ui.image_list import image_list_component
+from nrtk_explorer.app import ui
 from nrtk_explorer.app.applet import Applet
 from nrtk_explorer.app.parameters import ParametersApp
 from nrtk_explorer.library.ml_models import (
@@ -157,9 +157,9 @@ class TransformsApp(Applet):
         for id_ in ids:
             self.context["annotations"][id_] = []
 
-        prediction = self.detector.eval(paths=ids, content=self.context.image_objects)
+        predictions = self.detector.eval(paths=ids, content=self.context.image_objects)
 
-        for id_, annotations in zip(ids, prediction):
+        for id_, annotations in predictions:
             image_annotations = self.context["annotations"].setdefault(id_, [])
             for prediction in annotations:
                 category_id = 0
@@ -350,11 +350,11 @@ class TransformsApp(Applet):
 
     def original_dataset_widget(self):
         with html.Div(trame_server=self.server):
-            image_list_component("source_image_ids", self.on_hover)
+            ui.image_list_component("source_image_ids", self.on_hover)
 
     def transformed_dataset_widget(self):
         with html.Div(trame_server=self.server):
-            image_list_component("transformed_image_ids", self.on_hover, is_transformation=True)
+            ui.image_list_component("transformed_image_ids", self.on_hover, is_transformation=True)
 
     # This is only used within when this module (file) is executed as an Standalone app.
     @property
