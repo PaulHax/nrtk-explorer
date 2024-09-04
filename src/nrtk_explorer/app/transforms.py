@@ -60,7 +60,7 @@ class TransformsApp(Applet):
         self._on_transform_fn = None
 
         self._transforms: Dict[str, trans.ImageTransform] = {
-            "disable": NotImplemented(),
+            # "disable": NotImplemented(),
             "identity": trans.IdentityTransform(),
             "blur": trans.GaussianBlurTransform(),
             "invert": trans.InvertTransform(),
@@ -77,14 +77,14 @@ class TransformsApp(Applet):
         self.state.current_transform = self.state.transforms[0]
 
         # Transform enabled control ###
-        def picked_real_transform(old, new):
-            return old == "disable" and new != "disable"
+        def just_enabled_transform(old, new):
+            return old is False and new
 
         def turn_on_transform_columns(_, __):
             if "transformed" not in self.state.visible_columns:
                 self.state.visible_columns = self.state.visible_columns + ["transformed"]
 
-        change_checker(self.state, "current_transform", picked_real_transform)(
+        change_checker(self.state, "transform_enabled_switch", just_enabled_transform)(
             turn_on_transform_columns
         )
 
@@ -92,16 +92,15 @@ class TransformsApp(Applet):
 
         def update_transform_enabled(**kwargs):
             self.state.transform_enabled = (
-                "transformed" in self.state.visible_columns
-                and self.state.current_transform != "disable"
+                "transformed" in self.state.visible_columns and self.state.transform_enabled_switch
             )
 
         self.state.change("visible_columns")(update_transform_enabled)
-        self.state.change("current_transform")(update_transform_enabled)
+        self.state.change("transform_enabled_switch")(update_transform_enabled)
         update_transform_enabled()
 
         def transform_became_enabled(old, new):
-            return not old and new
+            return old is False and new
 
         change_checker(self.state, "transform_enabled", transform_became_enabled)(
             self.schedule_transformed_images
@@ -279,18 +278,17 @@ class TransformsApp(Applet):
             self._on_hover_fn(id_)
 
     def settings_widget(self):
-        with html.Div(trame_server=self.server):
-            with html.Div(classes="col"):
-                self._parameters_app.transform_select_ui()
-
-                with html.Div(
-                    classes="q-pa-md q-ma-md",
-                    style="border-style: solid; border-width: thin; border-radius: 0.5rem; border-color: lightgray;",
-                ):
-                    self._parameters_app.transform_params_ui()
+        with html.Div(classes="col"):
+            quasar.QToggle(v_model=("transform_enabled_switch", False), label="Transform Images")
+            self._parameters_app.transform_select_ui()
+            with html.Div(
+                classes="q-pa-md q-ma-md",
+                style="border-style: solid; border-width: thin; border-radius: 0.5rem; border-color: lightgray;",
+            ):
+                self._parameters_app.transform_params_ui()
 
     def apply_ui(self):
-        with html.Div(trame_server=self.server):
+        with html.Div():
             self._parameters_app.transform_apply_ui()
 
     def dataset_widget(self):
