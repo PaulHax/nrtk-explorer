@@ -153,9 +153,8 @@ class TransformsApp(Applet):
         if nrtk_trans.nrtk_transforms_available():
             self._transforms["nrtk_blur"] = nrtk_trans.NrtkGaussianBlurTransform()
             self._transforms["nrtk_pybsm"] = nrtk_trans.NrtkPybsmTransform()
-
-        # Add transform from YAML definition
-        self._transforms.update(nrtk_yaml.generate_transforms())
+            # Add transform from YAML definition
+            self._transforms.update(nrtk_yaml.generate_transforms())
 
         self._parameters_app._transforms = self._transforms
 
